@@ -33,7 +33,16 @@ double Euler::max_eigenvalue(const Eigen::VectorXd &u) const
 
 Eigen::VectorXd Euler::cons_to_prim(const Eigen::VectorXd &u_cons) const
 {
-    return Eigen::VectorXd::Zero(n_vars);
+    Eigen::VectorXd u_prim(n_vars);
+    auto t=primitive(u_cons);
+    u_prim(0) = std::get<0>(t);
+    u_prim(1) = std::get<1>(t);
+    u_prim(2) = std::get<2>(t);
+
+    return u_prim;
+
+
+    //return Eigen::VectorXd::Zero(n_vars);
 }
 
 Eigen::VectorXd Euler::prim_to_cons(const Eigen::VectorXd &u_prim) const

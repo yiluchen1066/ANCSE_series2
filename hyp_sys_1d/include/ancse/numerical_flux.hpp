@@ -61,7 +61,19 @@ class LaxFriedrichs {
                                const Eigen::VectorXd &uR) const {
         double dx = grid.dx;
         double dt = simulation_time->dt;
-        return Eigen::VectorXd();
+        double sR = dx/dt;
+        double sL = -dx/dt;
+        auto fL = model->flux(uL);
+        auto fR = model->flux(uR);
+
+        if (sL >= 0){
+            return fL;
+        } else if (sL < 0 && sR > 0){
+            return (sR*fL-sL*fR+sR*sL*(uR-uL))/(sR-sL);
+        } else if (sR <= 0) {
+            return fR;
+        }
+
     }
 
   private:
@@ -83,7 +95,12 @@ class Rusanov {
     Eigen::VectorXd operator()(const Eigen::VectorXd &uL,
                                const Eigen::VectorXd &uR) const
     {
-        return Eigen::VectorXd();
+        auto fL=model->flux(uL);
+        auto fR = model->flux(uR);
+        double MaxEigenR=model->max_eigenvalue(uR);
+        double MaxEigenL=model->max_eigenvalue(uL);
+        double sR = std::max(MaxEigenL, MaxEigenR);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     `
+        return 0.5 * (fL + fR) - 0.5 * sR * (uR - uL);
     }
 
   private:
@@ -104,7 +121,18 @@ class Roe{
     Eigen::VectorXd operator()(const Eigen::VectorXd &uL,
                                const Eigen::VectorXd &uR) const
     {
-        return Eigen::VectorXd();
+        auto fL = model->flux(uL);
+        auto fR = model->flux(uR);
+        //eigenvalues(u).cwiseAbs()
+        auto eigenvalA = (model->eigenvalues(uL)+model->eigenvalues(uR))*0.5;
+        auto AbsEigenvalA = eigenvalA.cwiseAbs();
+        auto eigenvecR = (model->eigenvectors(uL)+model->eigenvectors(uR))*0.5;
+        auto eigenvecRT = eigenvecR.transpose();
+
+        return 0.5 * (fL + fR) - 0.5 * eigenvecR * AbsEigenvalA * eigenvecRT * (uR - uL);
+
+
+
     }
 
   private:
@@ -124,7 +152,35 @@ class HLL {
     Eigen::VectorXd operator()(const Eigen::VectorXd &uL,
                                const Eigen::VectorXd &uR) const
     {
-        return Eigen::VectorXd();
+
+        auto fL = model->flux(uL);
+        auto fR = model->flux(uR);
+        auto eigenval_mean = (model->eigenvalues(uL)+model->eigenvalues(uR))*0.5;
+        auto eigenval_L = model->eigenvalues(uL);
+        auto eigenval_R = model->eigenvalues(uR);
+        Eigen::VectorXd eigenval_min(3);
+        Eigen::VectorXd eigenval_max(3);
+
+        for (int i = 0; i < 3; ++i) {
+            eigenval_min[i] = std::min(eigenval_mean[i], eigenval_L[i]);
+        }
+
+        for (int i = 0; i < 3; ++i) {
+            eigenval_max[i] = std::max(eigenval_mean[i], eigenval_R[i]);
+
+        }
+
+        double sL = std::min(eigenval_min[0], std::min(eigenval_min[1], eigenval_min[2]));
+        double sR = std::max(eigenval_max[0], std::max(eigenval_max[1], eigenval_max[2]));
+
+        if (sL >= 0){
+            return fL;
+        } else if (sL < 0 && sR > 0){
+            return (sR*fL-sL*fR+sR*sL*(uR-uL))/(sR-sL);
+        } else if (sR <= 0) {
+            return fR;
+        }
+
     }
 
   private:
