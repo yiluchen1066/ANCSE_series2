@@ -66,13 +66,8 @@ class LaxFriedrichs {
         auto fL = model->flux(uL);
         auto fR = model->flux(uR);
 
-        if (sL >= 0){
-            return fL;
-        } else if (sL < 0 && sR > 0){
-            return (sR*fL-sL*fR+sR*sL*(uR-uL))/(sR-sL);
-        } else if (sR <= 0) {
-            return fR;
-        }
+        return 0.5 * (fL + fR) - 0.5 *sR*(uR-uL);
+
 
     }
 

@@ -24,19 +24,21 @@ inline double minmod(double a, double b, double c) {
 struct MinMod {
     inline double operator()(double a, double b) const
     {
-        return 0.;
+        return minmod(a,b);
     }
 };
 
 struct SuperBee {
     inline double operator()(double sL, double sR) const {
-        return 0.;
+        auto SL = minmod(2*sL, sR);
+        auto SR = minmod(sL, 2*sR);
+        return maxmod(SL, SR);
     }
 };
 
 struct MonotonizedCentral {
     inline double operator()(double sL, double sR) const {
-        return 0.;
+        return minmod(2*sR, minmod((sL+sR)/2, 2*sL));
     }
 };
 //----------------LimitersEnd----------------  

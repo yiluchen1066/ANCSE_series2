@@ -11,11 +11,13 @@
 #include <ancse/rate_of_change.hpp>
 #include <ancse/simulation_time.hpp>
 
-
-class PWConstantReconstruction {
-  public:
-    void set(const Eigen::MatrixXd &u) const {
-        up.resize(u.rows(),u.cols());
+class PWConstantReconstruction
+{
+public:
+    void
+    set(const Eigen::MatrixXd &u) const
+    {
+        up.resize(u.rows(), u.cols());
         up = u;
     }
 
@@ -27,8 +29,9 @@ class PWConstantReconstruction {
      *        reconstruction.
      */
     std::pair<Eigen::VectorXd, Eigen::VectorXd>
-    operator()(int i) const {
-        return (*this)(up.col(i), up.col(i+1));
+    operator()(int i) const
+    {
+        return (*this)(up.col(i), up.col(i + 1));
     }
 
     /// Compute the left and right trace at the interface.
@@ -41,34 +44,38 @@ class PWConstantReconstruction {
      */
     inline
     std::pair<Eigen::VectorXd, Eigen::VectorXd>
-    operator()(Eigen::VectorXd ua, Eigen::VectorXd ub) const {
+    operator()(Eigen::VectorXd ua, Eigen::VectorXd ub) const
+    {
         return {std::move(ua), std::move(ub)};
     }
 
 private:
-  mutable Eigen::MatrixXd up;
+    mutable Eigen::MatrixXd up;
 };
 
+//----------------ReconstructionBegin----------------
+enum { Conserved, Primitive };
 
-//----------------ReconstructionBegin----------------  
-enum {Conserved, Primitive};
-
-template <class SlopeLimiter, int ReconstructionVars>
+template<class SlopeLimiter, int ReconstructionVars>
 class PWLinearReconstruction;
 
-template <class SlopeLimiter>
-class PWLinearReconstruction<SlopeLimiter, Conserved> {
-  public:
-    explicit PWLinearReconstruction(const SlopeLimiter &slope_limiter)
+template<class SlopeLimiter>
+class PWLinearReconstruction<SlopeLimiter, Conserved>
+{
+public:
+    explicit PWLinearReconstruction(const Grid &grid, const SlopeLimiter &slope_limiter)
         : slope_limiter(slope_limiter) {}
 
-    void set(const Eigen::MatrixXd &u) const {
-        up.resize(u.rows(),u.cols());
+    void
+    set(const Eigen::MatrixXd &u) const
+    {
+        up.resize(u.rows(), u.cols());
         up = u;
     }
 
     std::pair<Eigen::VectorXd, Eigen::VectorXd>
-    operator()(int i) const {
+    operator()(int i) const
+    {
         return (*this)(up.col(i - 1), up.col(i), up.col(i + 1), up.col(i + 2));
     }
 
@@ -79,37 +86,67 @@ class PWLinearReconstruction<SlopeLimiter, Conserved> {
                const Eigen::VectorXd &ud) const
     {
 
+        double dx = grid.dx;
+        Eigen::VectorXd uL(3);
+        Eigen::VectorXd uR(3);
+
+        Eigen::VectorXd sL1(3);
+        Eigen::VectorXd sR1(3);
+        Eigen::VectorXd sR2(3);
+
+        for (int i = 0; i < 3; i++)
+        {
+            sL1[i] = (ub[i] - ua[i]) / dx;
+            sR1[i] = (uc[i] - ub[i]) / dx;
+            sR2[i] = (ud[i] - uc[i]) / dx;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            uL[i] = ub[i] + 0.5 * dx * slope_limiter(sL1[i], sR1[i]);
+            uR[i] = uc[i] - 0.5 * dx * slope_limiter(sR1[i], sR2[i]);
+        }
+
+
+
+
         ///  ANCSE_COMMENT Implement here the reconstruction using conservative variables.
 
-        return {std::move(Eigen::VectorXd()), std::move(Eigen::VectorXd())};
-
+        return {std::move(uL), std::move(uR)};
 
     }
 
-  private:
+private:
+    Grid grid;
     SlopeLimiter slope_limiter;
     mutable Eigen::MatrixXd up;
 };
 
-template <class SlopeLimiter>
-class PWLinearReconstruction<SlopeLimiter, Primitive> {
-  public:
+template<class SlopeLimiter>
+class PWLinearReconstruction<SlopeLimiter, Primitive>
+{
+public:
     explicit PWLinearReconstruction(const std::shared_ptr<Model> &model,
-                                    const SlopeLimiter &slope_limiter)
+                                    const SlopeLimiter &slope_limiter,
+                                    const Grid &grid)
         : model(model), slope_limiter(slope_limiter) {}
 
-    void set(const Eigen::MatrixXd &u) const
+    void
+    set(const Eigen::MatrixXd &u) const
     {
-        up.resize(u.rows(),u.cols());
-        for (int i = 0; i < u.cols(); ++i) {
+        up.resize(u.rows(), u.cols());
+        for (int i = 0; i < u.cols(); ++i)
+        {
+            up.row(i)= model->cons_to_prim(u.row(i));
             ///  ANCSE_COMMENT Implement here the transformation from conservative to primitive.
         }
     }
 
     std::pair<Eigen::VectorXd, Eigen::VectorXd>
-    operator()(int i) const {
+    operator()(int i) const
+    {
 
-        auto [uLp, uRp] = (*this)(up.col(i - 1), up.col(i), up.col(i + 1), up.col(i + 2));
+        auto[uLp, uRp] = (*this)(up.col(i - 1), up.col(i), up.col(i + 1), up.col(i + 2));
 
         return {std::move(model->prim_to_cons(uLp)), std::move(model->prim_to_cons(uRp))};
     }
@@ -120,6 +157,28 @@ class PWLinearReconstruction<SlopeLimiter, Primitive> {
                const Eigen::VectorXd &uc,
                const Eigen::VectorXd &ud) const
     {
+        double dx = grid.dx;
+        Eigen::VectorXd uL(3);
+        Eigen::VectorXd uR(3);
+
+        Eigen::VectorXd sL1(3);
+        Eigen::VectorXd sR1(3);
+        Eigen::VectorXd sR2(3);
+
+        for (int i = 0; i < 3; i++)
+        {
+            sL1[i] = (ub[i] - ua[i]) / dx;
+            sR1[i] = (uc[i] - ub[i]) / dx;
+            sR2[i] = (ud[i] - uc[i]) / dx;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            uL[i] = ub[i] + 0.5 * dx * slope_limiter(sL1[i], sR1[i]);
+            uR[i] = uc[i] - 0.5 * dx * slope_limiter(sR1[i], sR2[i]);
+        }
+
+
 
         ///  ANCSE_COMMENT Implement here the reconstruction using primitive variables.
         ///  ANCSE_COMMENT The transformation can be done above.
@@ -129,7 +188,8 @@ class PWLinearReconstruction<SlopeLimiter, Primitive> {
 
     }
 
-  private:
+private:
+    Grid grid;
     std::shared_ptr<Model> model;
     SlopeLimiter slope_limiter;
 
