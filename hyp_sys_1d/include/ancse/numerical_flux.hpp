@@ -94,7 +94,7 @@ class Rusanov {
         auto fR = model->flux(uR);
         double MaxEigenR=model->max_eigenvalue(uR);
         double MaxEigenL=model->max_eigenvalue(uL);
-        double sR = std::max(MaxEigenL, MaxEigenR);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     `
+        double sR = std::max(MaxEigenL, MaxEigenR);
         return 0.5 * (fL + fR) - 0.5 * sR * (uR - uL);
     }
 

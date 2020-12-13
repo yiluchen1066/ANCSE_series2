@@ -102,6 +102,13 @@ class SSP2 : public RungeKutta {
                             const Eigen::MatrixXd &u0,
                             double dt) const override
     {
+        (*rate_of_change)(dudt,u0);
+        u_star = u0 + dt * dudt;
+        (*boundary_condition)(u_star);
+        (*rate_of_change)(dudt, u_star);
+        u_star = u_star + dt*dudt;
+        u1 = (u_star+u0)/2;
+        (*boundary_condition)(u1);
         // implement RK here.
     }
 

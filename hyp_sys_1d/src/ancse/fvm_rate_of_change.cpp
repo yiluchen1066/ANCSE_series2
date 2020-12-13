@@ -4,6 +4,7 @@
 #include <ancse/numerical_flux.hpp>
 #include <ancse/reconstruction.hpp>
 #include <fmt/format.h>
+#include <ancse/limiters.hpp>
 
 #define REGISTER_NUMERICAL_FLUX(token, FluxType, flux)                         \
     if (config["flux"] == (token)) {                                           \
@@ -20,6 +21,10 @@ deduce_numerical_flux(const nlohmann::json &config,
                       const Reconstruction &reconstruction)
 {
     REGISTER_NUMERICAL_FLUX("central_flux", CentralFlux, CentralFlux(model))
+    REGISTER_NUMERICAL_FLUX("laxfriedrichs",LaxFriedrichs, LaxFriedrichs(grid,model,simulation_time))
+    REGISTER_NUMERICAL_FLUX("rusanov", Rusanov, Rusanov(model))
+    REGISTER_NUMERICAL_FLUX("roe", Roe, Roe(model))
+    REGISTER_NUMERICAL_FLUX("HLL", HLL, HLL(model))
 
     // Register the other numerical fluxes.
 
@@ -48,6 +53,14 @@ std::shared_ptr<RateOfChange> make_fvm_rate_of_change(
     const std::shared_ptr<SimulationTime> &simulation_time)
 {
     REGISTER_RECONSTRUCTION("o1", PWConstantReconstruction{})
+    REGISTER_RECONSTRUCTION("minmod-c", (PWLinearReconstruction<MinMod,Conserved>(grid, MinMod{})))
+    REGISTER_RECONSTRUCTION("minmod-p", (PWLinearReconstruction<MinMod,Primitive>(model, MinMod{}, grid)))
+    REGISTER_RECONSTRUCTION("superbee-c", (PWLinearReconstruction<SuperBee,Conserved>(grid, SuperBee{})))
+    REGISTER_RECONSTRUCTION("superbee-p", (PWLinearReconstruction<SuperBee,Primitive>(model,SuperBee{},grid)))
+    REGISTER_RECONSTRUCTION("MC-c", (PWLinearReconstruction<MonotonizedCentral,Conserved>(grid, MonotonizedCentral{})))
+    REGISTER_RECONSTRUCTION("MC-p", (PWLinearReconstruction<MonotonizedCentral,Primitive>(model,MonotonizedCentral{},grid)))
+
+
 
     // Register piecewise linear reconstructions.
 

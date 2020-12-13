@@ -44,6 +44,14 @@ class FVMRateOfChange : public RateOfChange {
         Eigen::VectorXd uL(u0.rows()), uR(u0.rows());
 
         reconstruction.set(u0);
+
+        for (int j = n_ghost; j < n_cells-n_ghost-2 ; j++)
+        {
+                auto [uL, uR] = reconstruction(u0,j);
+                auto [uL_1, uR_1] = reconstruction(u0, j-1);
+                dudt.col(j)=-(numerical_flux(uL, uR) - numerical_flux(uL_1, uR_1))/dx;
+
+        }
         // implement the flux loop here.
     }
     //----------------FVMRateOfChangeEnd----------------
