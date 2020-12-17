@@ -63,7 +63,7 @@ template<class SlopeLimiter>
 class PWLinearReconstruction<SlopeLimiter, Conserved>
 {
 public:
-    explicit PWLinearReconstruction(const Grid &grid, const SlopeLimiter &slope_limiter)
+    explicit PWLinearReconstruction(const SlopeLimiter &slope_limiter)
         : slope_limiter(slope_limiter) {}
 
     void
@@ -86,7 +86,6 @@ public:
                const Eigen::VectorXd &ud) const
     {
 
-        double dx = grid.dx;
         Eigen::VectorXd uL(3);
         Eigen::VectorXd uR(3);
 
@@ -96,15 +95,15 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            sL1[i] = (ub[i] - ua[i]) / dx;
-            sR1[i] = (uc[i] - ub[i]) / dx;
-            sR2[i] = (ud[i] - uc[i]) / dx;
+            sL1[i] = (ub[i] - ua[i]) ;
+            sR1[i] = (uc[i] - ub[i]) ;
+            sR2[i] = (ud[i] - uc[i]) ;
         }
 
         for (int i = 0; i < 3; i++)
         {
-            uL[i] = ub[i] + 0.5 * dx * slope_limiter(sL1[i], sR1[i]);
-            uR[i] = uc[i] - 0.5 * dx * slope_limiter(sR1[i], sR2[i]);
+            uL[i] = ub[i] + 0.5 *  slope_limiter(sL1[i], sR1[i]);
+            uR[i] = uc[i] - 0.5 *  slope_limiter(sR1[i], sR2[i]);
         }
 
 
@@ -117,7 +116,6 @@ public:
     }
 
 private:
-    Grid grid;
     SlopeLimiter slope_limiter;
     mutable Eigen::MatrixXd up;
 };
@@ -127,8 +125,7 @@ class PWLinearReconstruction<SlopeLimiter, Primitive>
 {
 public:
     explicit PWLinearReconstruction(const std::shared_ptr<Model> &model,
-                                    const SlopeLimiter &slope_limiter,
-                                    const Grid &grid)
+                                    const SlopeLimiter &slope_limiter)
         : model(model), slope_limiter(slope_limiter) {}
 
     void
@@ -157,7 +154,6 @@ public:
                const Eigen::VectorXd &uc,
                const Eigen::VectorXd &ud) const
     {
-        double dx = grid.dx;
         Eigen::VectorXd uL(3);
         Eigen::VectorXd uR(3);
 
@@ -167,15 +163,15 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            sL1[i] = (ub[i] - ua[i]) / dx;
-            sR1[i] = (uc[i] - ub[i]) / dx;
-            sR2[i] = (ud[i] - uc[i]) / dx;
+            sL1[i] = (ub[i] - ua[i]) ;
+            sR1[i] = (uc[i] - ub[i]) ;
+            sR2[i] = (ud[i] - uc[i]) ;
         }
 
         for (int i = 0; i < 3; i++)
         {
-            uL[i] = ub[i] + 0.5 * dx * slope_limiter(sL1[i], sR1[i]);
-            uR[i] = uc[i] - 0.5 * dx * slope_limiter(sR1[i], sR2[i]);
+            uL[i] = ub[i] + 0.5 *  slope_limiter(sL1[i], sR1[i]);
+            uR[i] = uc[i] - 0.5 *  slope_limiter(sR1[i], sR2[i]);
         }
 
 
@@ -184,12 +180,11 @@ public:
         ///  ANCSE_COMMENT The transformation can be done above.
 
 
-        return {std::move(Eigen::VectorXd()), std::move(Eigen::VectorXd())};
+        return {std::move(uL), std::move(uR)};
 
     }
 
 private:
-    Grid grid;
     std::shared_ptr<Model> model;
     SlopeLimiter slope_limiter;
 

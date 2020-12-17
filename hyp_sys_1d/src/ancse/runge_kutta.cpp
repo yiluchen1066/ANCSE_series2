@@ -21,6 +21,7 @@ make_runge_kutta(const nlohmann::json &config,
     std::string rk_key = config["time_integrator"];
 
     REGISTER_FVM_RUNGE_KUTTA("forward_euler", ForwardEuler)
+    REGISTER_FVM_RUNGE_KUTTA("ssp2", SSP2)
 
     // Register your SSP2 class.
 

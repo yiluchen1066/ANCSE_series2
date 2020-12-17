@@ -53,12 +53,12 @@ std::shared_ptr<RateOfChange> make_fvm_rate_of_change(
     const std::shared_ptr<SimulationTime> &simulation_time)
 {
     REGISTER_RECONSTRUCTION("o1", PWConstantReconstruction{})
-    REGISTER_RECONSTRUCTION("minmod-c", (PWLinearReconstruction<MinMod,Conserved>(grid, MinMod{})))
-    REGISTER_RECONSTRUCTION("minmod-p", (PWLinearReconstruction<MinMod,Primitive>(model, MinMod{}, grid)))
-    REGISTER_RECONSTRUCTION("superbee-c", (PWLinearReconstruction<SuperBee,Conserved>(grid, SuperBee{})))
-    REGISTER_RECONSTRUCTION("superbee-p", (PWLinearReconstruction<SuperBee,Primitive>(model,SuperBee{},grid)))
-    REGISTER_RECONSTRUCTION("MC-c", (PWLinearReconstruction<MonotonizedCentral,Conserved>(grid, MonotonizedCentral{})))
-    REGISTER_RECONSTRUCTION("MC-p", (PWLinearReconstruction<MonotonizedCentral,Primitive>(model,MonotonizedCentral{},grid)))
+    REGISTER_RECONSTRUCTION("minmod-c", (PWLinearReconstruction<MinMod,Conserved>(MinMod{})))
+    REGISTER_RECONSTRUCTION("minmod-p", (PWLinearReconstruction<MinMod,Primitive>(model, MinMod{})))
+    REGISTER_RECONSTRUCTION("superbee-c", (PWLinearReconstruction<SuperBee,Conserved>( SuperBee{})))
+    REGISTER_RECONSTRUCTION("superbee-p", (PWLinearReconstruction<SuperBee,Primitive>(model,SuperBee{})))
+    REGISTER_RECONSTRUCTION("MC-c", (PWLinearReconstruction<MonotonizedCentral,Conserved>( MonotonizedCentral{})))
+    REGISTER_RECONSTRUCTION("MC-p", (PWLinearReconstruction<MonotonizedCentral,Primitive>(model,MonotonizedCentral{})))
 
 
 

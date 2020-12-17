@@ -61,12 +61,10 @@ class LaxFriedrichs {
                                const Eigen::VectorXd &uR) const {
         double dx = grid.dx;
         double dt = simulation_time->dt;
-        double sR = dx/dt;
-        double sL = -dx/dt;
         auto fL = model->flux(uL);
         auto fR = model->flux(uR);
 
-        return 0.5 * (fL + fR) - 0.5 *sR*(uR-uL);
+        return 0.5 * (fL + fR) - 0.5 *dx/dt*(uR-uL);
 
 
     }
@@ -181,9 +179,7 @@ class HLL {
   private:
     std::shared_ptr<Model> model;
 };
-//----------------FluxHLLEnd---------------- 
-
-/// HLLC flux
+//----------------FluxHLLEnd----------------
 /** This requires knowledge about the model.
  *  This version is for the Euler equation.
  */
@@ -198,7 +194,50 @@ class HLLCEuler {
     Eigen::VectorXd operator()(const Eigen::VectorXd &uL,
                                const Eigen::VectorXd &uR) const
     {
-        return Eigen::VectorXd();
+        auto fL = model->flux(uL);
+        auto fR = model->flux(uR);
+        auto eigenval_mean = (model->eigenvalues(uL)+model->eigenvalues(uR))*0.5;
+        auto eigenval_L = model->eigenvalues(uL);
+        auto eigenval_R = model->eigenvalues(uR);
+        Eigen::VectorXd eigenval_min(3);
+        Eigen::VectorXd eigenval_max(3);
+
+        for (int i = 0; i < 3; ++i) {
+            eigenval_min[i] = std::min(eigenval_mean[i], eigenval_L[i]);
+        }
+
+        for (int i = 0; i < 3; ++i) {
+            eigenval_max[i] = std::max(eigenval_mean[i], eigenval_R[i]);
+
+        }
+
+        double sL = std::min(eigenval_min[0], std::min(eigenval_min[1], eigenval_min[2]));
+        double sR = std::max(eigenval_max[0], std::max(eigenval_max[1], eigenval_max[2]));
+        double sM = (uR[0]*uR[1]*(sR-uR[1])-uL[0]*uL[1]*(sL-uL[1])-(uR[2]-uL[2])/(uR[0]*(sR-uR[1])-uL[0]*(sL-uL[1])));
+
+        double rho_L = (uL[0]*(uL[1]-sL))/(sM-sL);
+        double rho_R = (uR[0]*(uR[1]-sR))/(sM-sR);
+        double p_star = uR[2]+uR[0]*(uR[1]-sM)*(uR[1]-sR);
+
+        Eigen::VectorXd UL(3);
+        Eigen::VectorXd UR(3);
+
+        UL[0] = rho_L;
+        UL[1]= rho_L*sM;
+        UL[2] = p_star/(model->get_gamma()-1)+0.5*rho_L*sM*sM;
+        UR[0] = rho_R;
+        UR[1]= rho_R*sM;
+        UR[2] = p_star/(model->get_gamma()-1)+0.5*rho_R*sM*sM;
+
+        if (sL>0){
+            return fL;
+        } else if (sL<=0 && sM>=0){
+            return fL+sL*(UL-uL);
+        } else if(sM>=0 && sR>0){
+            return fR+sR*(UR-uR);
+        } else{
+            return fR;
+        }
     }
 
   private:

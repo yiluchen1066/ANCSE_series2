@@ -15,9 +15,18 @@ double StandardCFLCondition <FVM>
     auto n_cells = grid.n_cells;
     auto n_ghost = grid.n_ghost;
 
-    double a_max = 0.0;
 
-    return 0.;
+    Eigen::VectorXd lamdamax(n_cells-2*n_ghost);
+
+    for (int i = n_ghost; i < n_cells-n_ghost;i++)
+    {
+
+        lamdamax[i-2] = model->max_eigenvalue(u.col(i));
+    }
+
+    double a_max = lamdamax.maxCoeff();
+
+    return cfl_number*grid.dx/a_max;
 
 }
 
