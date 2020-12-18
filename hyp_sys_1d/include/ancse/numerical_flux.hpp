@@ -155,16 +155,16 @@ class HLL {
         Eigen::VectorXd eigenval_max(3);
 
         for (int i = 0; i < 3; ++i) {
-            eigenval_min[i] = std::min(eigenval_mean[i], eigenval_L[i]);
+            eigenval_min(i)= std::min(eigenval_mean(i), eigenval_L(i));
         }
 
         for (int i = 0; i < 3; ++i) {
-            eigenval_max[i] = std::max(eigenval_mean[i], eigenval_R[i]);
+            eigenval_max(i) = std::max(eigenval_mean(i), eigenval_R(i));
 
         }
 
-        double sL = std::min(eigenval_min[0], std::min(eigenval_min[1], eigenval_min[2]));
-        double sR = std::max(eigenval_max[0], std::max(eigenval_max[1], eigenval_max[2]));
+        double sL = std::min(eigenval_min(0), std::min(eigenval_min(1), eigenval_min(2)));
+        double sR = std::max(eigenval_max(0), std::max(eigenval_max(1), eigenval_max(2)));
 
         if (sL >= 0){
             return fL;
@@ -203,37 +203,38 @@ class HLLCEuler {
         Eigen::VectorXd eigenval_max(3);
 
         for (int i = 0; i < 3; ++i) {
-            eigenval_min[i] = std::min(eigenval_mean[i], eigenval_L[i]);
+            eigenval_min(i) = std::min(eigenval_mean(i), eigenval_L(i));
         }
 
         for (int i = 0; i < 3; ++i) {
-            eigenval_max[i] = std::max(eigenval_mean[i], eigenval_R[i]);
+            eigenval_max(i) = std::max(eigenval_mean(i), eigenval_R(i));
 
         }
 
-        double sL = std::min(eigenval_min[0], std::min(eigenval_min[1], eigenval_min[2]));
-        double sR = std::max(eigenval_max[0], std::max(eigenval_max[1], eigenval_max[2]));
-        double sM = (uR[0]*uR[1]*(sR-uR[1])-uL[0]*uL[1]*(sL-uL[1])-(uR[2]-uL[2])/(uR[0]*(sR-uR[1])-uL[0]*(sL-uL[1])));
+        double sL = std::min(eigenval_min(0), std::min(eigenval_min(1), eigenval_min(2)));
+        double sR = std::max(eigenval_max (0), std::max(eigenval_max(1), eigenval_max(2)));
+        double sM = (uR(0)*uR(1)*(sR-uR(1))-uL(0)*uL(1)*(sL-uL(1))-(uR(2)-uL(2)))/(uR(0)*(sR-uR(1))-uL(0)*(sL-uL(1)));
 
-        double rho_L = (uL[0]*(uL[1]-sL))/(sM-sL);
-        double rho_R = (uR[0]*(uR[1]-sR))/(sM-sR);
-        double p_star = uR[2]+uR[0]*(uR[1]-sM)*(uR[1]-sR);
+        double rho_L = (uL(0)*(uL(1)-sL))/(sM-sL);
+        double rho_R = (uR(0)*(uR(1)-sR))/(sM-sR);
+        double p_star = uR(2)+uR(0)*(uR(1)-sM)*(uR(1)-sR);
 
         Eigen::VectorXd UL(3);
         Eigen::VectorXd UR(3);
 
-        UL[0] = rho_L;
-        UL[1]= rho_L*sM;
-        UL[2] = p_star/(model->get_gamma()-1)+0.5*rho_L*sM*sM;
-        UR[0] = rho_R;
-        UR[1]= rho_R*sM;
-        UR[2] = p_star/(model->get_gamma()-1)+0.5*rho_R*sM*sM;
+        UL(0)=rho_L;
+        UL(1)=rho_L*sM;
+        UL(2)=p_star/(model->get_gamma()-1)+0.5*rho_L*sM*sM;
+        UR(0)=rho_R;
+        UR(1)=rho_R*sM;
+        UR(2)=p_star/(model->get_gamma()-1)+0.5*rho_R*sM*sM;
+
 
         if (sL>0){
             return fL;
-        } else if (sL<=0 && sM>=0){
+        } else if (sL<=0 && sM>0){
             return fL+sL*(UL-uL);
-        } else if(sM>=0 && sR>0){
+        } else if(sM<=0 && sR>0){
             return fR+sR*(UR-uR);
         } else{
             return fR;

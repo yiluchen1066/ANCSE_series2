@@ -45,7 +45,7 @@ class FVMRateOfChange : public RateOfChange {
 
         reconstruction.set(u0);
 
-        for (int j = n_ghost; j < n_cells-n_ghost-2 ; j++)
+        for (int j = n_ghost+1; j < n_cells-n_ghost-2 ; j++)
         {
                 auto [uL, uR] = reconstruction(j);
                 auto [uL_1, uR_1] = reconstruction(j-1);

@@ -6,9 +6,9 @@
   "output_file": "euler_fvm-",
   
   "boundary_condition": "outflow",
-  "reconstruction": "o1",
-  "time_integrator": "forward_euler",
-  "flux": "hllc",
+  "reconstruction": "minmod-c",
+  "time_integrator": "ssp2",
+  "flux": "HLL",
 
   
   "n_interior_cells": 128,

@@ -95,15 +95,15 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            sL1[i] = (ub[i] - ua[i]) ;
-            sR1[i] = (uc[i] - ub[i]) ;
-            sR2[i] = (ud[i] - uc[i]) ;
+            sL1(i) = (ub(i) - ua(i)) ;
+            sR1(i) = (uc(i) - ub(i)) ;
+            sR2(i) = (ud(i) - uc(i)) ;
         }
 
         for (int i = 0; i < 3; i++)
         {
-            uL[i] = ub[i] + 0.5 *  slope_limiter(sL1[i], sR1[i]);
-            uR[i] = uc[i] - 0.5 *  slope_limiter(sR1[i], sR2[i]);
+            uL(i) = ub(i) + 0.5 *  slope_limiter(sL1(i), sR1(i));
+            uR(i) = uc(i) - 0.5 *  slope_limiter(sR1(i), sR2(i));
         }
 
 
@@ -163,15 +163,15 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            sL1[i] = (ub[i] - ua[i]) ;
-            sR1[i] = (uc[i] - ub[i]) ;
-            sR2[i] = (ud[i] - uc[i]) ;
+            sL1(i) = (ub(i) - ua(i)) ;
+            sR1(i) = (uc(i) - ub(i)) ;
+            sR2(i) = (ud(i) - uc(i)) ;
         }
 
         for (int i = 0; i < 3; i++)
         {
-            uL[i] = ub[i] + 0.5 *  slope_limiter(sL1[i], sR1[i]);
-            uR[i] = uc[i] - 0.5 *  slope_limiter(sR1[i], sR2[i]);
+            uL(i) = ub(i) + 0.5 *  slope_limiter(sL1(i), sR1(i));
+            uR(i) = uc(i) - 0.5 *  slope_limiter(sR1(i), sR2(i));
         }
 
 
