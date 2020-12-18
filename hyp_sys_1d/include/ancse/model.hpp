@@ -90,14 +90,41 @@ class Burgers : public Model {
 /// Euler equations
 class Euler : public Model {
   public:
-    
-    Eigen::VectorXd flux(const Eigen::VectorXd &u) const override;
-    
-    Eigen::VectorXd eigenvalues(const Eigen::VectorXd &u) const override;
 
-    Eigen::MatrixXd eigenvectors(const Eigen::VectorXd &u) const override;
+    Eigen::VectorXd flux(const Eigen::VectorXd &u) const override {
+        Eigen::VectorXd f(n_vars);
+        f(0) = u(1);
+        f(1)=u(1)*u(1)/u(0)+u(0);
+        f(2)=u(2)*u(1)/u(0)+u(1);
+
+        return f;
+
+    }
     
-    double max_eigenvalue(const Eigen::VectorXd &u) const override;
+    Eigen::VectorXd eigenvalues(const Eigen::VectorXd &u) const override {
+        double v = u(1)/u(0);
+        double p = (u(2)-0.5*u(0) * u(1)/u(0)*u(1)/u(0))*(gamma-1);
+
+        double c = sqrt(gamma*p/u(0));
+
+        Eigen::VectorXd eigenvals=eigenvalues(v,c);
+        return eigenvals;
+
+    }
+
+    Eigen::MatrixXd eigenvectors(const Eigen::VectorXd &u) const override{
+        double v= u(1)/u(0);
+        double p = u(2)-0.5*u(0)*u(1)/u(0)*u(1)/u(0)*(gamma-1);
+        double H = (u(2)+p)/u(0);
+
+        Eigen::MatrixXd eigvecs = eigenvectors(v,H);
+        return eigvecs;
+    };
+    
+    double max_eigenvalue(const Eigen::VectorXd &u) const override {
+        return (eigenvalues(u).cwiseAbs()).maxCoeff();
+
+    }
 
     Eigen::VectorXd cons_to_prim(const Eigen::VectorXd &u_cons) const override;
 
@@ -121,6 +148,16 @@ class Euler : public Model {
 
     }
 
+    inline std::tuple<double, double, double>
+    consertive(const Eigen::VectorXd &u_prim) const{
+        double rho,rhov, E;
+        rho = u_prim(0);
+        rhov = u_prim(0)*u_prim(1);
+        E = u_prim(2)/(gamma-1)+0.5*u_prim(0)*u_prim(1)*u_prim(1);
+
+        return std::make_tuple(rho,rhov,E);
+    }
+
     inline double pressure(double rho, double v, double E) const
     {
         return (gamma-1)*(E - 0.5*rho*v*v);
@@ -140,6 +177,7 @@ class Euler : public Model {
     {
         return (p/(gamma-1) + 0.5*rho*v*v);
     }
+
 
     inline Eigen::VectorXd eigenvalues(double v, double c) const
     {
@@ -170,6 +208,7 @@ class Euler : public Model {
 
         return eigvecs;
     }
+
     //----------------ModelEulerEnd----------------
 
 

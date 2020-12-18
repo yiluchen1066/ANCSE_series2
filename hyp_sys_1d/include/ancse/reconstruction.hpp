@@ -132,7 +132,7 @@ public:
     set(const Eigen::MatrixXd &u) const
     {
         up.resize(u.rows(), u.cols());
-        for (int i = 0; i < u.cols(); ++i)
+        for (int i = 0; i < u.cols(); i++)
         {
             up.col(i)= model->cons_to_prim(u.col(i));
             ///  ANCSE_COMMENT Implement here the transformation from conservative to primitive.

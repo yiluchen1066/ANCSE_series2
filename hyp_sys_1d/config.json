@@ -8,7 +8,7 @@
   "boundary_condition": "outflow",
   "reconstruction": "o1",
   "time_integrator": "forward_euler",
-  "flux": "rusanov",
+  "flux": "hllc",
 
   
   "n_interior_cells": 128,

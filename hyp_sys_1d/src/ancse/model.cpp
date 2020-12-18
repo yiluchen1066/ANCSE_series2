@@ -10,25 +10,6 @@
 
 // For task 1g you can use the functions implemented in model.hpp
 //----------------ModelEulerBegin----------------
-Eigen::VectorXd Euler::flux(const Eigen::VectorXd &u) const
-{
-    return Eigen::VectorXd::Zero(n_vars);
-}
-
-Eigen::VectorXd Euler::eigenvalues(const Eigen::VectorXd &u) const
-{
-    return Eigen::VectorXd::Zero(n_vars);
-}
-
-Eigen::MatrixXd Euler::eigenvectors(const Eigen::VectorXd &u) const
-{
-    return Eigen::MatrixXd::Zero(n_vars, n_vars);
-}
-
-double Euler::max_eigenvalue(const Eigen::VectorXd &u) const
-{
-    return 0;
-}
 
 
 Eigen::VectorXd Euler::cons_to_prim(const Eigen::VectorXd &u_cons) const
@@ -47,7 +28,13 @@ Eigen::VectorXd Euler::cons_to_prim(const Eigen::VectorXd &u_cons) const
 
 Eigen::VectorXd Euler::prim_to_cons(const Eigen::VectorXd &u_prim) const
 {
-    return Eigen::VectorXd::Zero(n_vars);
+    Eigen::VectorXd u_cons(n_vars);
+    auto tp = consertive(u_prim);
+    u_cons(0)=std::get<0>(tp);
+    u_cons(1)=std::get<1>(tp);
+    u_cons(2)=std::get<2>(tp);
+
+    return u_cons;
 }
 
 Eigen::VectorXd Euler::roe_avg(const Eigen::VectorXd &uL,

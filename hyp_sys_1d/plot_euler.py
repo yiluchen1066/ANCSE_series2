@@ -38,6 +38,8 @@ if __name__ == "__main__":
 
     files = sorted(glob.glob("{}*.json".format(prefix)))
 
+    print(files)
+
     for fn in files:
         t, x, rho, v, p = load_snapshot(fn)
         plt.plot(x, rho, label="rho")

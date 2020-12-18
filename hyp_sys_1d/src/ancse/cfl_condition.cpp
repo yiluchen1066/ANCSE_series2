@@ -21,12 +21,21 @@ double StandardCFLCondition <FVM>
     for (int i = n_ghost; i < n_cells-n_ghost;i++)
     {
 
-        lamdamax[i-2] = model->max_eigenvalue(u.col(i));
+        lamdamax[i-n_ghost] = model->max_eigenvalue(u.col(i));
     }
 
-    double a_max = lamdamax.maxCoeff();
+    double a_max = 0.0;
 
-    return cfl_number*grid.dx/a_max;
+    for (int i = 0; i < n_cells-2*n_ghost; i++)
+    {
+        if (lamdamax[i]>a_max){
+            a_max = lamdamax[i];
+        }
+    }
+    //double a_max = lamdamax.maxCoeff();
+    auto dt=cfl_number*grid.dx/a_max;
+
+    return dt;
 
 }
 
